@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت کلاس ها</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            font-size: 28px;
+        }
+        h2 {
+            font-size: 22px;
+        }
+        .class-box {
+            width: 100%;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid;
+            font-size: 18px;
+            line-height: 1.8;
+            position: relative;
+        }
+        .box-1 { background-color: #FFE4E1; border-color: #FF69B4; }
+        .box-2 { background-color: #E0FFFF; border-color: #20B2AA; }
+        .box-3 { background-color: #F0FFF0; border-color: #9ACD32; }
+        .box-4 { background-color: #FFF0F5; border-color: #FFA07A; }
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 مدیریت کلاس ها</h1>
+
+    <form id="classForm">
+        <h2>➕ افزودن کلاس جدید</h2>
+
+        <label for="number">شماره کلاس:</label>
+        <input type="text" id="number" required>
+
+        <label for="professor">نام استاد:</label>
+        <input type="text" id="professor" required>
+
+        <label for="time">ساعت کلاس:</label>
+        <input type="text" id="time" required>
+
+        <label for="title">عنوان کلاس:</label>
+        <input type="text" id="title" required>
+
+        <button type="submit">ذخیره کلاس</button>
+    </form>
+
+    <h2>📋 لیست کلاس ها</h2>
+    <div id="classesContainer">
+        <p id="noClasses">کلاسی یافت نشد. اولین کلاس را اضافه کنید!</p>
+        <!-- کلاس ها در اینجا نمایش داده می شوند -->
+    </div>
+
+    <script>
+        // ذخیره کلاس ها در حافظه مرورگر
+        let classes = JSON.parse(localStorage.getItem('classes')) || [];
+
+        document.getElementById('classForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // دریافت مقادیر فرم
+            const number = document.getElementById('number').value;
+            const professor = document.getElementById('professor').value;
+            const time = document.getElementById('time').value;
+            const title = document.getElementById('title').value;
+
+            // ایجاد شیء کلاس جدید
+            const newClass = { number, professor, time, title };
+
+            // افزودن به آرایه
+            classes.push(newClass);
+
+            // ذخیره در حافظه مرورگر
+            localStorage.setItem('classes', JSON.stringify(classes));
+
+            // ریست فرم
+            this.reset();
+
+            // نمایش پیام موفقیت
+            alert('کلاس با موفقیت ذخیره شد!');
+
+            // نمایش کلاس ها
+            displayClasses();
+        });
+
+        function displayClasses() {
+            const container = document.getElementById('classesContainer');
+            const noClassesMsg = document.getElementById('noClasses');
+
+            // پاک کردن کلاس های قبلی
+            container.innerHTML = '';
+            container.appendChild(noClassesMsg);
+
+            if (classes.length === 0) {
+                noClassesMsg.classList.remove('hidden');
+                return;
+            }
+
+            noClassesMsg.classList.add('hidden');
+
+            // نمایش هر کلاس
+            classes.forEach((cls, index) => {
+                const box = document.createElement('div');
+                box.className = `class-box box-${(index % 4) + 1}`;
+                box.innerHTML = `
+                    <button class="delete-btn" data-index="${index}">✕ حذف</button>
+                    <strong>شماره کلاس:</strong> ${cls.number}<br>
+                    <strong>نام استاد:</strong> ${cls.professor}<br>
+                    <strong>ساعت کلاس:</strong> ${cls.time}<br>
+                    <strong>عنوان کلاس:</strong> ${cls.title}
+                `;
+                container.appendChild(box);
+            });
+
+            // اضافه کردن رویداد به دکمه های حذف
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    if (confirm('آیا مطمئن هستید که می خواهید این کلاس را حذف کنید؟')) {
+                        classes.splice(index, 1);
+                        localStorage.setItem('classes', JSON.stringify(classes));
+                        displayClasses();
+                    }
+                });
+            });
+        }
+
+        // نمایش کلاس ها هنگام بارگذاری صفحه
+        displayClasses();
+    </script>
+</body>
+</html>
